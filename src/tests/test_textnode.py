@@ -1,5 +1,5 @@
 import unittest
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node, text_to_textnodes
 
 
 class TestTextNode(unittest.TestCase):
@@ -77,6 +77,72 @@ class TestTextNode(unittest.TestCase):
         node = TextNode("Bad node", "not_a_real_type")
         with self.assertRaises(ValueError):
             text_node_to_html_node(node)
+
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_all_types(self):
+        text = (
+            "This is **text** with an _italic_ word and a `code block` and an "
+            "![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a "
+            "[link](https://boot.dev)"
+        )
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            nodes,
+        )
+
+    def test_plain_text(self):
+        nodes = text_to_textnodes("Just plain text with nothing special")
+        self.assertListEqual(
+            [TextNode("Just plain text with nothing special", TextType.TEXT)], nodes
+        )
+
+    def test_only_bold(self):
+        nodes = text_to_textnodes("**bold**")
+        self.assertListEqual([TextNode("bold", TextType.BOLD)], nodes)
+
+    def test_only_image(self):
+        nodes = text_to_textnodes("![alt](https://www.boot.dev/img.png)")
+        self.assertListEqual(
+            [TextNode("alt", TextType.IMAGE, "https://www.boot.dev/img.png")], nodes
+        )
+
+    def test_only_link(self):
+        nodes = text_to_textnodes("[boot dev](https://www.boot.dev)")
+        self.assertListEqual(
+            [TextNode("boot dev", TextType.LINK, "https://www.boot.dev")], nodes
+        )
+
+    def test_empty_string(self):
+        nodes = text_to_textnodes("")
+        self.assertListEqual([], nodes)
+
+    def test_multiple_of_same_type(self):
+        nodes = text_to_textnodes("**one** and **two** and **three**")
+        self.assertListEqual(
+            [
+                TextNode("one", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("two", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("three", TextType.BOLD),
+            ],
+            nodes,
+        )
 
 
 if __name__ == "__main__":
