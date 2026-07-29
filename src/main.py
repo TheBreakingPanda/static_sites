@@ -1,11 +1,15 @@
-from textnode import TextNode, TextType
+from copystatic import copy_static_to_public
+from generatepage import generate_pages_recursive
+
+STATIC_DIR = "static"
+PUBLIC_DIR = "public"
+CONTENT_DIR = "content"
+TEMPLATE_PATH = "template.html"
+
 
 def main():
-    # Create a TextNode instance
-    text_node = TextNode("Hello, World!", TextType.TEXT)
-
-    # Print the TextNode instance
-    print(text_node)
+    copy_static_to_public(STATIC_DIR, PUBLIC_DIR)
+    generate_pages_recursive(CONTENT_DIR, TEMPLATE_PATH, PUBLIC_DIR)
 
 
 main()
